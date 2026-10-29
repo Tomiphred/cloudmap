@@ -1,0 +1,839 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>/*__TITLE__*/</title>
+<style>
+:root{
+  color-scheme: light dark;
+  --bg:#f4f5f7; --panel:#ffffff; --ink:#1a2230; --muted:#697386; --line:#dfe3ea; --accent:#2f6df6;
+  --c-compute:#e8710a; --c-network:#7c4dff; --c-storage:#2f8a3d; --c-database:#2563d9;
+  --c-integration:#d1286b; --c-edge:#0d8a7c; --c-security:#d93a4f; --c-other:#667085;
+  --region:#8791a3; --vpc:#7c4dff; --pub:#2f8a3d; --priv:#2563d9; --acct:#1a2230;
+  --e-route:#8791a3; --e-traffic:#2563d9; --e-trigger:#e8710a; --e-event:#d1286b; --e-peering:#7c4dff;
+  --e-attachment:#7c4dff; --e-manages:#8791a3; --e-contains:#b4bbc8; --e-dead-letter:#d93a4f;
+  --e-invoke:#0d8a7c; --e-origin:#0d8a7c; --e-replication:#2563d9; --e-link:#8791a3; --e-private-link:#0d8a7c;
+  --e-access:#d93a4f; --e-assume:#c026d3; --e-identity:#a16207; --e-member:#7a8699; --e-encrypts:#2f8a3d; --e-uses:#0891b2;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0e131b; --panel:#171e29; --ink:#e7ebf1; --muted:#97a2b5; --line:#293342; --accent:#6c9bff;
+    --c-compute:#f08a2e; --c-network:#9a7bff; --c-storage:#47a857; --c-database:#4d86f0;
+    --c-integration:#e5578c; --c-edge:#2fb3a3; --c-security:#ee6a7b; --c-other:#8a94a6;
+    --region:#707b8f; --vpc:#9a7bff; --pub:#47a857; --priv:#4d86f0; --acct:#e7ebf1;
+    --e-route:#707b8f; --e-traffic:#6c9bff; --e-trigger:#f08a2e; --e-event:#e5578c; --e-peering:#9a7bff;
+    --e-attachment:#9a7bff; --e-manages:#707b8f; --e-contains:#434d5e; --e-dead-letter:#ee6a7b;
+    --e-invoke:#2fb3a3; --e-origin:#2fb3a3; --e-replication:#6c9bff; --e-link:#707b8f; --e-private-link:#2fb3a3;
+    --e-access:#ee6a7b; --e-assume:#e879f9; --e-identity:#e0b04a; --e-member:#8a96aa; --e-encrypts:#47a857; --e-uses:#38bdf8;
+  }
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{font:13px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+.app{display:grid;grid-template-columns:268px 1fr;grid-template-rows:54px 1fr;height:100vh}
+header{grid-column:1/3;display:flex;align-items:center;gap:14px;padding:0 16px;background:var(--panel);border-bottom:1px solid var(--line)}
+header h1{font-size:15px;margin:0;font-weight:650;letter-spacing:.1px;white-space:nowrap}
+header .sub{color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+header .sp{flex:1}
+input[type=search]{width:260px;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit}
+input[type=search]:focus{outline:2px solid var(--accent);outline-offset:-1px}
+button{font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 10px;cursor:pointer}
+button:hover{border-color:var(--accent)}
+button.hidden{display:none}
+aside{overflow:auto;padding:14px 14px 24px;background:var(--panel);border-right:1px solid var(--line)}
+aside h2{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:18px 0 8px;font-weight:650}
+aside h2:first-child{margin-top:0}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stat{background:var(--bg);border-radius:8px;padding:8px 10px}
+.stat b{display:block;font-size:18px;font-weight:650}
+.stat span{color:var(--muted);font-size:11px}
+label.row{display:flex;align-items:center;gap:8px;padding:3px 0;cursor:pointer}
+label.row .n{margin-left:auto;color:var(--muted);font-variant-numeric:tabular-nums}
+.sw{width:10px;height:10px;border-radius:3px;flex:none}
+.inv{display:flex;justify-content:space-between;padding:2px 0;color:var(--ink)}
+.inv span:last-child{color:var(--muted);font-variant-numeric:tabular-nums}
+.warn{color:var(--muted);font-size:12px;padding:2px 0}
+main{position:relative;overflow:hidden}
+main.tbl .zoom,main.tbl .hint{display:none}
+svg#canvas{width:100%;height:100%;display:block;cursor:grab;touch-action:none}
+svg#canvas.panning{cursor:grabbing}
+.zoom{position:absolute;left:14px;bottom:14px;display:flex;flex-direction:column;gap:6px}
+.zoom button{width:34px;height:34px;padding:0;font-size:16px}
+.hint{position:absolute;left:62px;bottom:20px;color:var(--muted);font-size:11px}
+#details{position:absolute;top:12px;right:12px;bottom:12px;width:330px;background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.14);padding:14px;overflow:auto}
+#details{z-index:5}
+#details.hidden{display:none}
+.dp-head{display:flex;gap:10px;align-items:center;margin-bottom:12px;padding-right:26px}
+.dp-name{font-weight:650;font-size:14px;word-break:break-all}
+.dp-type{color:var(--muted)}
+.chip{min-width:38px;height:38px;border-radius:9px;color:#fff;font-weight:700;font-size:11px;display:flex;align-items:center;justify-content:center;padding:0 4px;background:var(--c-other)}
+.chip.c-compute{background:var(--c-compute)} .chip.c-network{background:var(--c-network)}
+.chip.c-storage{background:var(--c-storage)} .chip.c-database{background:var(--c-database)}
+.chip.c-integration{background:var(--c-integration)} .chip.c-edge{background:var(--c-edge)}
+.chip.c-security{background:var(--c-security)} .chip.c-container{background:var(--muted)}
+#details .x{position:absolute;top:10px;right:10px;width:28px;height:28px;padding:0}
+table.kv{width:100%;border-collapse:collapse;margin-bottom:12px}
+table.kv td{padding:4px 0;vertical-align:top;border-bottom:1px solid var(--line)}
+table.kv td:first-child{color:var(--muted);width:40%;padding-right:8px}
+table.kv td:last-child{word-break:break-word}
+#details h3{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:14px 0 6px}
+.conn{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);border-radius:0;padding:5px 0;background:none}
+.conn small{color:var(--muted)}
+.seg{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px}
+.seg button{padding:3px 9px;font-size:12px;border-radius:999px}
+.seg button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.seg .lbl{width:100%;color:var(--muted);font-size:11px}
+.dates{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px;margin:8px 0}
+.dates label{display:block;color:var(--muted);font-size:11px;min-width:0}
+input[type=date]{width:100%;min-width:0;padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit;font-size:12px}
+.hist{display:block;width:100%;height:78px;margin:2px 0 2px;overflow:visible}
+.hb{fill:var(--muted);opacity:.5}
+.hbg{cursor:pointer;outline:none}
+.hbg:hover .hb,.hbg:focus-visible .hb{opacity:.9}
+.hbg.on .hb{fill:var(--accent);opacity:1}
+.hit{fill:transparent}
+.hax{fill:var(--muted);font:9px system-ui,sans-serif}
+.sumline{font-size:12px;color:var(--muted);margin:6px 0}
+.sumline b{color:var(--ink)}
+.note{font-size:11px;color:var(--muted);margin-top:4px}
+.linkbtn{border:0;background:none;color:var(--accent);padding:0;font-size:12px}
+#empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted);pointer-events:none;font-size:14px}
+#empty.hidden{display:none}
+ul.vals{margin:0;padding-left:16px}
+.viewseg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.viewseg button{border:0;border-radius:0;padding:6px 12px}
+.viewseg button.on{background:var(--accent);color:#fff}
+#tableview{position:absolute;inset:0;display:flex;flex-direction:column;background:var(--bg)}
+#tableview.hidden{display:none}
+.tbar{display:flex;align-items:center;gap:14px;padding:10px 14px;border-bottom:1px solid var(--line);background:var(--panel);color:var(--muted)}
+.tbar b{color:var(--ink)} .tbar label{display:flex;gap:6px;align-items:center;cursor:pointer}
+.twrap{flex:1;overflow:auto}
+table.inv-t{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5px}
+table.inv-t th{position:sticky;top:0;background:var(--panel);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);cursor:pointer;white-space:nowrap;z-index:1;user-select:none}
+table.inv-t th.sorted::after{content:' ▲'} table.inv-t th.sorted.desc::after{content:' ▼'}
+table.inv-t td:nth-child(n+3):nth-child(-n+6){white-space:nowrap}
+table.inv-t td{padding:6px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+table.inv-t tr.row{cursor:pointer} table.inv-t tr.row:hover td{background:color-mix(in srgb,var(--accent) 8%,transparent)}
+table.inv-t tr.row.sel td{background:color-mix(in srgb,var(--accent) 16%,transparent)}
+.tname{font-weight:600;word-break:break-all} .tmuted{color:var(--muted)}
+.tdot{display:inline-block;width:8px;height:8px;border-radius:3px;margin-right:6px;background:var(--c-other)}
+.pill{display:inline-block;margin:0 4px 3px 0;padding:1px 7px;border:1px solid var(--line);border-radius:999px;background:var(--panel);cursor:pointer;font-size:11.5px;color:var(--ink)}
+.pill i{font-style:normal;color:var(--muted);margin-right:4px}
+.pill.in{border-style:dashed}
+.tfoot{padding:10px 14px;color:var(--muted)}
+#canvas.hidden{display:none}
+@media (max-width:820px){.app{grid-template-columns:1fr}aside{display:none}input[type=search]{width:150px}header .sub{display:none}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1 id="title">Architecture</h1>
+    <span class="sub" id="subtitle"></span>
+    <span class="sp"></span>
+    <input id="q" type="search" placeholder="Search name, id, type, tag…  ( / )" autocomplete="off">
+    <span class="sub" id="qcount"></span>
+    <div class="viewseg" role="group" aria-label="View"><button id="v-diagram" class="on">Diagram</button><button id="v-table">Table</button></div>
+    <button id="b-fit" title="Fit to screen (f)">Fit</button>
+    <button id="b-csv" class="hidden" title="Download the table as CSV">CSV</button>
+    <button id="b-svg">SVG</button>
+    <button id="b-png">PNG</button>
+    <button id="b-json">JSON</button>
+  </header>
+  <aside id="side"></aside>
+  <main id="main">
+    <svg id="canvas" xmlns="http://www.w3.org/2000/svg"></svg>
+    <div class="zoom"><button id="z-in" title="Zoom in">+</button><button id="z-out" title="Zoom out">−</button></div>
+    <div class="hint">Scroll to zoom · drag to pan · click a resource for details</div>
+    <div id="empty" class="hidden">No resources match the current filters.</div>
+    <div id="tableview" class="hidden"></div>
+    <div id="details" class="hidden"></div>
+  </main>
+</div>
+<script id="data" type="application/json">/*__DATA__*/</script>
+<script>
+(() => {
+'use strict';
+const DATA = JSON.parse(document.getElementById('data').textContent);
+const SVGNS = 'http://www.w3.org/2000/svg';
+const byId = new Map(DATA.resources.map(r => [r.id, r]));
+const TYPE = t => DATA.types[t] || {label: t, short: '?', category: 'other'};
+const CAT_LABEL = {compute:'Compute', network:'Networking', storage:'Storage', database:'Databases',
+  integration:'Integration', edge:'Edge & APIs', security:'Security & identity', other:'Other', container:'Container'};
+const KIND_LABEL = {route:'Route', traffic:'Load-balancer traffic', trigger:'Trigger', event:'Event / notification',
+  peering:'VPC peering', attachment:'Attachment', manages:'Manages', contains:'Contains', 'dead-letter':'Dead-letter',
+  invoke:'Invoke', origin:'CDN origin', replication:'Replication', 'private-link':'Private link', link:'Link',
+  access:'Access (permission)', assume:'Can assume (trust)', identity:'Runs as (identity)', member:'Group membership',
+  encrypts:'Encrypted with (KMS)', uses:'Uses secret / parameter'};
+const KIND_DASH = {route:'5 4', 'dead-letter':'2 3', replication:'6 3', 'private-link':'3 3', assume:'7 3', member:'2 3', encrypts:'4 3', uses:'3 2'};
+const VARS = ['--bg','--panel','--ink','--muted','--line','--c-compute','--c-network','--c-storage','--c-database',
+  '--c-integration','--c-edge','--c-security','--c-other','--region','--vpc','--pub','--priv','--acct',
+  ...Object.keys(KIND_LABEL).map(k => '--e-' + k)];
+
+// ---------- tiny DOM helpers (textContent only: resource names/tags are untrusted) ----------
+function mk(ns, tag, attrs, kids) {
+  const el = ns ? document.createElementNS(ns, tag) : document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (v === false || v == null) continue;
+    if (k === 'class') el.setAttribute('class', v);
+    else if (k.startsWith('on')) el.addEventListener(k.slice(2), v);
+    else el.setAttribute(k, v);
+  }
+  for (const c of [].concat(kids || [])) {
+    if (c == null || c === false) continue;
+    el.append(c.nodeType ? c : document.createTextNode(String(c)));
+  }
+  return el;
+}
+const h = (tag, attrs, ...kids) => mk(null, tag, attrs, kids.flat());
+const s = (tag, attrs, ...kids) => mk(SVGNS, tag, attrs, kids.flat());
+const trunc = (t, n) => t.length > n ? t.slice(0, n - 1) + '…' : t;
+const $ = id => document.getElementById(id);
+
+// ---------- state ----------
+const st = {hiddenCats: new Set(), hiddenKinds: new Set(), edges: true, q: '', sel: null, hover: null, k: 1, x: 0, y: 0,
+  view: 'diagram', inclContainers: true, sortKey: 'name', sortDir: 1, gran: 'month', from: null, to: null, unknown: null, anchor: null};   // from inclusive, to exclusive (UTC ms)
+const NODE_W = 132, NODE_H = 92, GAP = 18, PAD = 18, HEAD = 36, MARGIN = 40;
+let L = null;                       // layout: {rect: Map, order: [], w, h}
+const nodeEls = new Map(), boxEls = new Map(), edgeEls = [];
+
+// ---------- svg scaffold ----------
+const svg = $('canvas');
+const DIAGRAM_CSS = `
+.box rect.bg{fill-opacity:.05;stroke-width:1.5}
+.box.acct rect.bg{fill:var(--acct);stroke:var(--acct);fill-opacity:.025;stroke-width:1.5}
+.box.region rect.bg{fill:var(--region);stroke:var(--region);stroke-dasharray:8 5}
+.box.vpc rect.bg{fill:var(--vpc);stroke:var(--vpc)}
+.box.subnet.pub rect.bg{fill:var(--pub);stroke:var(--pub);fill-opacity:.08}
+.box.subnet.priv rect.bg{fill:var(--priv);stroke:var(--priv);fill-opacity:.07}
+.box.generic rect.bg{fill:var(--region);stroke:var(--region)}
+.box.sel rect.bg{stroke-width:3}
+.box .bt{font:600 13px system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;fill:var(--ink)}
+.box .bs{font:11px system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;fill:var(--muted)}
+.box{cursor:pointer}
+.node{cursor:pointer}
+.node rect.card{fill:var(--panel);stroke:var(--line);stroke-width:1}
+.node:hover rect.card,.node.sel rect.card{stroke:var(--accent);stroke-width:2}
+.node rect.ico{fill:var(--c-other)}
+.node rect.ico.c-compute{fill:var(--c-compute)} .node rect.ico.c-network{fill:var(--c-network)}
+.node rect.ico.c-storage{fill:var(--c-storage)} .node rect.ico.c-database{fill:var(--c-database)}
+.node rect.ico.c-integration{fill:var(--c-integration)} .node rect.ico.c-edge{fill:var(--c-edge)}
+.node rect.ico.c-security{fill:var(--c-security)}
+.node text.glyph{font:700 13px system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;fill:#fff;text-anchor:middle}
+.node text.nm{font:600 11.5px system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;fill:var(--ink);text-anchor:middle}
+.node text.tp{font:10px system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;fill:var(--muted);text-anchor:middle}
+.node .dot{stroke:var(--panel);stroke-width:2}
+.node .dot.ok{fill:#2fb35a} .node .dot.bad{fill:#e5484d} .node .dot.mid{fill:#f5a524}
+.node.match rect.card{stroke:var(--accent);stroke-width:2.5}
+.node.dim{opacity:.22}
+.edge{fill:none;stroke:var(--e-link);stroke-width:1.5;opacity:.7}
+.edge.k-access,.edge.k-member,.edge.k-encrypts,.edge.k-uses,.edge.k-identity,.edge.k-assume{opacity:.3}   /* identity layer: quiet until traced */
+.edge.faint{opacity:.08}
+.edge.hi{opacity:1;stroke-width:2.6}
+${Object.keys(KIND_LABEL).map(k => `.edge.k-${k}{stroke:var(--e-${k})}.mk-${k}{fill:var(--e-${k})}`).join('\n')}
+.edge.k-peering{stroke-width:2.4}
+.edge.k-contains{opacity:.35}
+`;
+svg.append(s('style', {}, DIAGRAM_CSS));
+const defs = s('defs');
+for (const k of Object.keys(KIND_LABEL)) {
+  defs.append(s('marker', {id: 'm-' + k, viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 7, markerHeight: 7,
+    orient: 'auto-start-reverse', markerUnits: 'userSpaceOnUse'}, s('path', {d: 'M0,1 L10,5 L0,9 z', class: 'mk-' + k})));
+}
+svg.append(defs);
+const vp = s('g', {id: 'vp'});
+const gBox = s('g'), gEdge = s('g'), gNode = s('g');
+vp.append(gBox, gEdge, gNode);
+svg.append(vp);
+
+// ---------- layout ----------
+function computeLayout() {
+  const kids = new Map(); const roots = [];
+  for (const r of DATA.resources) {
+    if (r.parent && byId.has(r.parent)) { if (!kids.has(r.parent)) kids.set(r.parent, []); kids.get(r.parent).push(r); }
+    else roots.push(r);
+  }
+  const memo = new Map();
+  const vis = r => {
+    if (memo.has(r.id)) return memo.get(r.id);
+    let v;
+    if (!r.container) v = !st.hiddenCats.has(r.category) && datePass(r);
+    else {
+      // a box is shown if anything inside it is; with no filters at all, empty boxes stay too, and a
+      // box that itself has a creation date in range (e.g. a brand-new VPC) counts as a match
+      const any = (kids.get(r.id) || []).some(vis);
+      v = any || (st.hiddenCats.size === 0 && (!filterOn() || (!!r.created && datePass(r))));
+    }
+    memo.set(r.id, v); return v;
+  };
+  const cmp = (a, b) => a.category.localeCompare(b.category) || a.type.localeCompare(b.type) || a.name.localeCompare(b.name);
+  const ROOT = {id: '__root', container: true, bare: true};
+  kids.set('__root', roots);
+  const rect = new Map(); const order = [];
+  const size = new Map();     // id -> {w,h,lay}
+
+  function measure(r) {
+    if (!r.container) { size.set(r.id, {w: NODE_W, h: NODE_H}); return; }
+    const pad = r.bare ? 0 : PAD, head = r.bare ? 0 : HEAD;
+    const ks = (kids.get(r.id) || []).filter(vis);
+    const subs = ks.filter(k => k.container), leaves = ks.filter(k => !k.container).sort(cmp);
+    subs.forEach(measure); leaves.forEach(measure);
+    let cols = 0, gridW = 0, gridH = 0;
+    if (leaves.length) {
+      cols = Math.min(8, leaves.length <= 4 ? leaves.length : Math.ceil(Math.sqrt(leaves.length * 1.5)));
+      const rows = Math.ceil(leaves.length / cols);
+      gridW = cols * NODE_W + (cols - 1) * GAP; gridH = rows * NODE_H + (rows - 1) * GAP;
+    }
+    const pos = new Map();
+    let subsW = 0, subsH = 0;
+    const azs = [...new Set(subs.map(c => c.props.az).filter(Boolean))].sort();
+    if (subs.length >= 2 && azs.length >= 2 && azs.length <= 6 && subs.every(c => c.props.az)) {
+      // availability-zone grid: one column per AZ, one row per tier (public tiers first)
+      subs.sort((a, b) => (!!b.props.public - !!a.props.public) || a.name.localeCompare(b.name));
+      const cols2 = azs.map(() => []);
+      for (const c of subs) cols2[azs.indexOf(c.props.az)].push(c);
+      const nrows = Math.max(...cols2.map(c => c.length));
+      const colW = cols2.map(col => Math.max(0, ...col.map(c => size.get(c.id).w)));
+      const rowH2 = Array.from({length: nrows}, (_, i) => Math.max(0, ...cols2.map(col => col[i] ? size.get(col[i].id).h : 0)));
+      let cx = 0;
+      cols2.forEach((col, j) => {
+        let cy = 0;
+        col.forEach((c, i) => { pos.set(c.id, {x: cx, y: cy}); cy += rowH2[i] + GAP; });
+        cx += colW[j] + GAP;
+      });
+      subsW = cx - GAP; subsH = rowH2.reduce((a, b) => a + b, 0) + GAP * (nrows - 1);
+    } else {
+      const area = subs.reduce((a, c) => a + size.get(c.id).w * size.get(c.id).h, 0);
+      const target = Math.max(gridW, ...subs.map(c => size.get(c.id).w), Math.sqrt(area) * 1.7);
+      let x = 0, y = 0, rowH = 0;
+      for (const c of subs) {
+        const z = size.get(c.id);
+        if (x > 0 && x + z.w > target) { x = 0; y += rowH + GAP; rowH = 0; }
+        pos.set(c.id, {x, y}); x += z.w + GAP; rowH = Math.max(rowH, z.h); subsW = Math.max(subsW, x - GAP);
+      }
+      subsH = subs.length ? y + rowH : 0;
+    }
+    const gridTop = subsH + (subs.length && leaves.length ? GAP : 0);
+    leaves.forEach((l, i) => pos.set(l.id, {x: (i % cols) * (NODE_W + GAP), y: gridTop + Math.floor(i / cols) * (NODE_H + GAP)}));
+    const contentW = Math.max(subsW, gridW), contentH = gridTop + gridH;
+    const minW = r.bare ? 0 : Math.max(230, r.name.length * 7.6 + boxSub(r).length * 5.7 + 50);
+    size.set(r.id, {w: Math.max(contentW + 2 * pad, minW), h: head + contentH + (r.bare ? 0 : pad), pos, subs, leaves, pad, head});
+  }
+  function place(r, ax, ay) {
+    const z = size.get(r.id);
+    if (!r.bare) { rect.set(r.id, {x: ax, y: ay, w: z.w, h: z.h}); order.push(r); }
+    if (!r.container) return;
+    for (const c of [...z.subs, ...z.leaves]) { const p = z.pos.get(c.id); place(c, ax + z.pad + p.x, ay + z.head + p.y); }
+  }
+  measure(ROOT); place(ROOT, 0, 0);
+  const z = size.get('__root');
+  L = {rect, order, w: z.w, h: z.h, leaves: order.filter(r => !r.container).length};
+}
+
+// ---------- drawing ----------
+const OK = new Set(['running','available','active','in-service','ready','enabled','deployed','inservice','succeeded','runnable','online']);
+const BAD = new Set(['stopped','failed','error','deleted','impaired','unavailable','disabled','deallocated','terminated']);
+function statusClass(r) {
+  const v = String(r.props.state || r.props.status || '').toLowerCase();
+  if (!v) return null;
+  return OK.has(v) ? 'ok' : BAD.has(v) ? 'bad' : 'mid';
+}
+function boxClass(r) {
+  const t = r.type.split('.').pop();
+  if (t === 'subnet') return 'subnet ' + (r.props.public ? 'pub' : 'priv');
+  return ['account', 'region', 'vpc'].includes(t) ? t : 'generic';
+}
+function boxSub(r) {
+  const label = TYPE(r.type).label;
+  const parts = [r.name.toLowerCase().includes(label.toLowerCase()) ? null : label, r.props.cidr, r.props.az];
+  return parts.filter(Boolean).join(' · ') + (r.props.public ? ' · public' : '');
+}
+function drawBox(r, R) {
+  const t = TYPE(r.type), sub = boxSub(r);
+  const avail = Math.max(10, Math.floor((R.w - 28) / 6.1));
+  const nm = trunc(r.name, Math.max(10, avail - 6));
+  const room = avail - nm.length - 2;
+  const g = s('g', {class: 'box ' + boxClass(r), transform: `translate(${R.x},${R.y})`},
+    s('rect', {class: 'bg', width: R.w, height: R.h, rx: 12}),
+    s('text', {x: 14, y: 23}, s('tspan', {class: 'bt'}, nm), room > 8 ? s('tspan', {class: 'bs', dx: 8}, trunc(sub, room)) : null),
+    s('title', {}, `${r.name}\n${t.label} · ${r.id}`));
+  g.addEventListener('click', e => { if (!justPanned) select(r.id); e.stopPropagation(); });
+  boxEls.set(r.id, g); gBox.append(g);
+}
+function drawNode(r, R) {
+  const t = TYPE(r.type), cx = R.w / 2, st_ = statusClass(r);
+  const g = s('g', {class: 'node', transform: `translate(${R.x},${R.y})`},
+    s('rect', {class: 'card', width: R.w, height: R.h, rx: 10}),
+    s('rect', {class: 'ico c-' + r.category, x: cx - 22, y: 9, width: 44, height: 44, rx: 10}),
+    s('text', {class: 'glyph', x: cx, y: 36}, t.short),
+    st_ && s('circle', {class: 'dot ' + st_, cx: cx + 22, cy: 11, r: 6}),
+    s('text', {class: 'nm', x: cx, y: 70}, trunc(r.name, 21)),
+    s('text', {class: 'tp', x: cx, y: 84}, trunc(t.label, 24)),
+    s('title', {}, `${r.name}\n${t.label}\n${r.id}`));
+  g.addEventListener('click', e => { if (!justPanned) select(r.id); e.stopPropagation(); });
+  g.addEventListener('pointerenter', () => { st.hover = r.id; applyFocus(); });
+  g.addEventListener('pointerleave', () => { st.hover = null; applyFocus(); });
+  nodeEls.set(r.id, g); gNode.append(g);
+}
+const ancestors = id => { const out = new Set(); let p = byId.get(id)?.parent; while (p) { out.add(p); p = byId.get(p)?.parent; } return out; };
+function clip(R, t) {
+  const c = {x: R.x + R.w / 2, y: R.y + R.h / 2}, dx = t.x - c.x, dy = t.y - c.y;
+  if (!dx && !dy) return c;
+  const k = Math.min(dx ? (R.w / 2) / Math.abs(dx) : Infinity, dy ? (R.h / 2) / Math.abs(dy) : Infinity);
+  return {x: c.x + dx * k, y: c.y + dy * k};
+}
+function drawEdges() {
+  if (!st.edges) return;
+  for (const e of DATA.edges) {
+    if (st.hiddenKinds.has(e.kind)) continue;
+    const A = L.rect.get(e.source), B = L.rect.get(e.target);
+    if (!A || !B) continue;
+    if (ancestors(e.source).has(e.target) || ancestors(e.target).has(e.source)) continue;
+    const ca = {x: A.x + A.w / 2, y: A.y + A.h / 2}, cb = {x: B.x + B.w / 2, y: B.y + B.h / 2};
+    const p1 = clip(A, cb), p2 = clip(B, ca);
+    const dx = p2.x - p1.x, dy = p2.y - p1.y, len = Math.hypot(dx, dy) || 1;
+    const off = Math.min(70, len * 0.14);
+    const c = {x: (p1.x + p2.x) / 2 - dy / len * off, y: (p1.y + p2.y) / 2 + dx / len * off};
+    const kind = KIND_LABEL[e.kind] ? e.kind : 'link';
+    const el = s('path', {class: `edge k-${kind}`, d: `M${p1.x},${p1.y} Q${c.x},${c.y} ${p2.x},${p2.y}`,
+      'marker-end': `url(#m-${kind})`, 'stroke-dasharray': KIND_DASH[kind] || false},
+      s('title', {}, `${byId.get(e.source).name} → ${byId.get(e.target).name}\n${KIND_LABEL[kind]}${e.label ? ': ' + e.label : ''}`));
+    edgeEls.push({el, s: e.source, t: e.target}); gEdge.append(el);
+  }
+}
+function draw() {
+  computeLayout();
+  gBox.replaceChildren(); gEdge.replaceChildren(); gNode.replaceChildren();
+  nodeEls.clear(); boxEls.clear(); edgeEls.length = 0;
+  for (const r of L.order) (r.container ? drawBox : drawNode)(r, L.rect.get(r.id));
+  drawEdges();
+  applyFocus();
+  $('empty').classList.toggle('hidden', L.order.length > 0);
+  if (st.sel && !L.rect.has(st.sel) && st.view === 'diagram') select(null);          // selection was filtered away
+  if (st.view === 'table') renderTable();
+}
+
+// ---------- focus / search ----------
+function matches(r, q) {
+  const hay = [r.name, r.id, r.type, TYPE(r.type).label, r.region || '', ...Object.values(r.tags || {}), ...Object.keys(r.tags || {}),
+    ...Object.values(r.props || {}).map(v => typeof v === 'object' ? JSON.stringify(v) : String(v)),
+    ...Object.entries(r.props || {}).filter(([, v]) => v === true).map(([k]) => k)].join('\n').toLowerCase();   // flags are searchable by name: admin_access, public_policy…
+  return q.split(/\s+/).every(w => hay.includes(w));
+}
+let matchSet = null;
+function applyFocus() {
+  const f = st.hover || st.sel, q = st.q.trim().toLowerCase();
+  matchSet = q ? new Set(DATA.resources.filter(r => !r.container && matches(r, q)).map(r => r.id)) : null;
+  $('qcount').textContent = matchSet ? `${matchSet.size} match${matchSet.size === 1 ? '' : 'es'}` : '';
+  let related = null;
+  if (f) { related = new Set([f]); for (const e of edgeEls) if (e.s === f || e.t === f) { related.add(e.s); related.add(e.t); } }
+  for (const [id, el] of nodeEls) {
+    el.classList.toggle('dim', !!((related && !related.has(id)) || (matchSet && !matchSet.has(id))));
+    el.classList.toggle('sel', id === st.sel);
+    el.classList.toggle('match', !!matchSet && matchSet.has(id));
+  }
+  for (const [id, el] of boxEls) el.classList.toggle('sel', id === st.sel);
+  for (const e of edgeEls) {
+    const on = !!f && (e.s === f || e.t === f);
+    e.el.classList.toggle('hi', on);
+    e.el.classList.toggle('faint', (!!f && !on) || (!!matchSet && !matchSet.has(e.s) && !matchSet.has(e.t)));
+  }
+}
+
+// ---------- details panel ----------
+const fmt = v => Array.isArray(v) ? v.join(', ') : typeof v === 'boolean' ? (v ? 'yes' : 'no')
+  : typeof v === 'number' ? v.toLocaleString() : typeof v === 'object' ? JSON.stringify(v) : String(v);
+const pretty = k => { const t = k.replace(/_/g, ' '); return t[0].toUpperCase() + t.slice(1); };
+function kvTable(rows) { return h('table', {class: 'kv'}, rows.map(([k, v]) => h('tr', {}, h('td', {}, k), h('td', {}, v)))); }
+const valCell = v => Array.isArray(v) && v.length > 1 ? h('ul', {class: 'vals'}, v.map(x => h('li', {}, fmt(x)))) : fmt(v);
+function select(id) {
+  st.sel = id; applyFocus();
+  if (st.view === 'table') document.querySelectorAll('#tableview tr.row').forEach(tr => tr.classList.toggle('sel', tr.dataset.id === id));
+  const box = $('details');
+  if (!id) { box.classList.add('hidden'); return; }
+  const r = byId.get(id), t = TYPE(r.type);
+  const rows = [['ID', r.id]];
+  if (r.region) rows.push(['Region', r.region]);
+  if (r.parent && byId.has(r.parent)) rows.push(['Inside', byId.get(r.parent).name]);
+  // some APIs only expose a last-modified time; say so rather than calling it a creation date
+  if (r.created) rows.push([r.props.date_basis ? 'Last modified' : 'Created', r.created.replace('T', ' ').replace(/\+00:00$/, ' UTC')]);
+  for (const [k, v] of Object.entries(r.props)) if (k !== 'date_basis') rows.push([pretty(k), valCell(v)]);
+  const outs = [], ins = [];
+  for (const e of DATA.edges) {
+    const out = e.source === id, inn = e.target === id;
+    if (!out && !inn) continue;
+    const other = byId.get(out ? e.target : e.source);
+    (out ? outs : ins).push(h('button', {class: 'conn', onclick: () => { select(other.id); if (st.view === 'diagram') centerOn(other.id); }},
+      (out ? '→ ' : '← ') + other.name, ' ', h('small', {}, `${KIND_LABEL[e.kind] || e.kind}${e.label ? ' · ' + e.label : ''}`)));
+  }
+  const tags = Object.entries(r.tags || {});
+  box.replaceChildren(...[
+    h('button', {class: 'x', title: 'Close', onclick: () => select(null)}, '×'),
+    h('div', {class: 'dp-head'}, h('div', {class: 'chip c-' + r.category}, t.short),
+      h('div', {}, h('div', {class: 'dp-name'}, r.name), h('div', {class: 'dp-type'}, t.label))),
+    kvTable(rows),
+    tags.length ? h('h3', {}, 'Tags') : null, tags.length ? kvTable(tags) : null,
+    outs.length ? h('h3', {}, `Connects to / controls (${outs.length})`) : null, ...outs,
+    ins.length ? h('h3', {}, `Connected from / used by (${ins.length})`) : null, ...ins].filter(Boolean));
+  box.classList.remove('hidden');
+}
+
+// ---------- view: zoom / pan ----------
+let justPanned = false;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const applyView = () => vp.setAttribute('transform', `translate(${st.x},${st.y}) scale(${st.k})`);
+function zoomAt(px, py, f) {
+  const nk = clamp(st.k * f, 0.04, 3), r = nk / st.k;
+  st.x = px - (px - st.x) * r; st.y = py - (py - st.y) * r; st.k = nk; applyView();
+}
+function fit() {
+  if (!L.w || !L.h) return;
+  const b = svg.getBoundingClientRect(), pw = 40;
+  if (!b.width || !b.height) return;
+  st.k = clamp(Math.min((b.width - 2 * pw) / L.w, (b.height - 2 * pw) / L.h), 0.04, 1.1);
+  st.x = (b.width - L.w * st.k) / 2; st.y = (b.height - L.h * st.k) / 2; applyView();
+}
+function centerOn(id) {
+  const R = L.rect.get(id); if (!R) return;
+  const b = svg.getBoundingClientRect(); st.k = clamp(Math.max(st.k, 0.9), 0.04, 3);
+  st.x = b.width / 2 - (R.x + R.w / 2) * st.k; st.y = b.height / 2 - (R.y + R.h / 2) * st.k; applyView();
+}
+svg.addEventListener('wheel', e => {
+  e.preventDefault();
+  const b = svg.getBoundingClientRect();
+  zoomAt(e.clientX - b.left, e.clientY - b.top, Math.exp(-e.deltaY * (e.ctrlKey ? 0.01 : 0.0016)));
+}, {passive: false});
+let drag = null;
+svg.addEventListener('pointerdown', e => { drag = {x: e.clientX, y: e.clientY, sx: st.x, sy: st.y, moved: false, id: e.pointerId}; });
+svg.addEventListener('pointermove', e => {
+  if (!drag) return;
+  const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+  if (!drag.moved && Math.hypot(dx, dy) > 4) { drag.moved = true; svg.classList.add('panning'); svg.setPointerCapture(drag.id); }
+  if (drag.moved) { st.x = drag.sx + dx; st.y = drag.sy + dy; applyView(); }
+});
+const endDrag = () => {
+  if (drag && drag.moved) { justPanned = true; setTimeout(() => { justPanned = false; }, 0); }
+  svg.classList.remove('panning'); drag = null;
+};
+svg.addEventListener('pointerup', endDrag); svg.addEventListener('pointercancel', endDrag);
+svg.addEventListener('click', () => { if (!justPanned) select(null); });
+$('z-in').onclick = () => { const b = svg.getBoundingClientRect(); zoomAt(b.width / 2, b.height / 2, 1.3); };
+$('z-out').onclick = () => { const b = svg.getBoundingClientRect(); zoomAt(b.width / 2, b.height / 2, 1 / 1.3); };
+$('b-fit').onclick = fit;
+
+// ---------- created-date filter ----------
+// All dates are UTC so a bucket means the same thing on every machine. "Past day/week/…" are measured
+// from the moment of the scan (the diagram is a snapshot), not from whenever the file is opened.
+const DAY = 864e5, MAX_BARS = 48;
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const createdMs = r => { const t = r.created ? Date.parse(r.created) : NaN; return Number.isNaN(t) ? null : t; };
+const leafRes = DATA.resources.filter(r => !r.container);
+const knownTimes = leafRes.map(createdMs).filter(t => t != null);
+const unknownCount = leafRes.length - knownTimes.length;
+const approxCount = leafRes.filter(r => r.props && r.props.date_basis).length;
+const REF = Date.parse(DATA.generated) || Date.now();
+const PRESETS = [['Past day', DAY], ['Past week', 7 * DAY], ['Past month', 30 * DAY], ['Past year', 365 * DAY]];
+const rangeActive = () => st.from != null || st.to != null;
+const includeUnknown = () => st.unknown == null ? !rangeActive() : st.unknown;
+const filterOn = () => rangeActive() || !includeUnknown();
+function datePass(r) {
+  if (!filterOn()) return true;
+  const t = createdMs(r);
+  if (t == null) return includeUnknown();
+  return (st.from == null || t >= st.from) && (st.to == null || t < st.to);
+}
+const utc = (y, m, d) => Date.UTC(y, m, d);
+function bucketStart(t, g) {
+  const d = new Date(t), day = utc(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+  if (g === 'year') return utc(d.getUTCFullYear(), 0, 1);
+  if (g === 'month') return utc(d.getUTCFullYear(), d.getUTCMonth(), 1);
+  return g === 'week' ? day - ((d.getUTCDay() + 6) % 7) * DAY : day;          // weeks start on Monday
+}
+function bucketNext(t, g) {
+  const d = new Date(t);
+  if (g === 'year') return utc(d.getUTCFullYear() + 1, 0, 1);
+  if (g === 'month') return utc(d.getUTCFullYear(), d.getUTCMonth() + 1, 1);
+  return t + (g === 'week' ? 7 : 1) * DAY;
+}
+function bucketLabel(t, g, short) {
+  const d = new Date(t), y = d.getUTCFullYear(), md = MONTHS[d.getUTCMonth()] + ' ' + d.getUTCDate();
+  if (g === 'year') return String(y);
+  if (g === 'month') return short ? MONTHS[d.getUTCMonth()] + " '" + String(y).slice(2) : MONTHS[d.getUTCMonth()] + ' ' + y;
+  return short ? md : (g === 'week' ? 'Week of ' : '') + md + ', ' + y;
+}
+const ymd = t => new Date(t).toISOString().slice(0, 10);
+function buildBuckets(g) {
+  const lo = knownTimes.reduce((a, b) => Math.min(a, b), Infinity), hi = knownTimes.reduce((a, b) => Math.max(a, b), -Infinity);
+  const list = [], index = new Map();
+  for (let t = bucketStart(lo, g); t <= hi; t = bucketNext(t, g)) { const b = {t, n: bucketNext(t, g), c: 0}; list.push(b); index.set(t, b); }
+  for (const t of knownTimes) index.get(bucketStart(t, g)).c++;
+  const shown = list.slice(-MAX_BARS);
+  return {shown, hidden: list.length - shown.length};
+}
+function refresh() { draw(); fit(); renderCreated(); }
+function pickBucket(b, ev) {
+  if (ev.shiftKey && st.anchor) { st.from = Math.min(st.anchor.t, b.t); st.to = Math.max(st.anchor.n, b.n); }
+  else if (st.from === b.t && st.to === b.n) { st.from = st.to = null; st.anchor = null; }
+  else { st.from = b.t; st.to = b.n; st.anchor = b; }
+  refresh();
+}
+function setPreset(ms) { st.from = ms == null ? null : REF - ms; st.to = null; st.anchor = null; refresh(); }
+function setDateInput(which, value) {
+  const t = value ? Date.parse(value + 'T00:00:00Z') : NaN;
+  if (which === 'from') st.from = Number.isNaN(t) ? null : t;
+  else st.to = Number.isNaN(t) ? null : t + DAY;                                   // "to" date is inclusive
+  st.anchor = null; refresh();
+}
+function renderCreated() {
+  const box = $('created-box');
+  if (!box) return;
+  if (!knownTimes.length) {
+    box.replaceChildren(h('div', {class: 'warn'}, 'No creation dates are available for these resources.'));
+    return;
+  }
+  const {shown, hidden} = buildBuckets(st.gran);
+  const W = 238, plotH = 56, n = shown.length, bw = W / n, maxc = Math.max(1, ...shown.map(b => b.c));
+  const isSel = b => rangeActive() && b.t < (st.to == null ? Infinity : st.to) && b.n > (st.from == null ? -Infinity : st.from);
+  const bars = shown.map((b, i) => {
+    const bh = b.c ? Math.max(2, b.c / maxc * plotH) : 1, label = `${bucketLabel(b.t, st.gran)} · ${b.c} created`;
+    const g = s('g', {class: 'hbg' + (isSel(b) ? ' on' : ''), tabindex: 0, role: 'button', 'aria-label': label,
+      'aria-pressed': isSel(b) ? 'true' : 'false'},
+      s('title', {}, label),
+      s('rect', {class: 'hit', x: i * bw, y: 0, width: bw, height: plotH + 4}),
+      s('rect', {class: 'hb', x: i * bw + (bw > 3 ? 0.5 : 0), y: plotH - bh + 2, width: Math.max(1, bw - (bw > 3 ? 1 : 0)), height: bh, rx: bw > 6 ? 1.5 : 0}));
+    g.addEventListener('click', ev => pickBucket(b, ev));
+    g.addEventListener('keydown', ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); pickBucket(b, ev); } });
+    return g;
+  });
+  const hist = s('svg', {class: 'hist', viewBox: `0 0 ${W} 78`, preserveAspectRatio: 'none', role: 'group',
+    'aria-label': 'Resources created over time'}, ...bars,
+    s('text', {class: 'hax', x: 0, y: 74}, bucketLabel(shown[0].t, st.gran, true)),
+    n > 1 ? s('text', {class: 'hax', x: W, y: 74, 'text-anchor': 'end'}, bucketLabel(shown[n - 1].t, st.gran, true)) : null);
+  const seg = (items, on, fn) => h('div', {class: 'seg'}, items.map(([label, key]) =>
+    h('button', {class: on(key) ? 'on' : '', onclick: () => fn(key)}, label)));
+  const presetOn = ms => st.to == null && st.from === (ms == null ? null : REF - ms) && !(ms == null && st.from != null);
+  const visible = L ? L.leaves : leafRes.length;
+  const first = bucketLabel(shown[0].t, st.gran), last = bucketLabel(shown[n - 1].t, st.gran);
+  box.replaceChildren(...[
+    seg([['All time', null], ...PRESETS.map(([l, ms]) => [l, ms])], presetOn, setPreset),
+    h('div', {class: 'seg'}, h('span', {class: 'lbl'}, 'Group bars by'),
+      ...['day', 'week', 'month', 'year'].map(g => h('button', {class: st.gran === g ? 'on' : '',
+        onclick: () => { st.gran = g; st.anchor = null; renderCreated(); }}, g[0].toUpperCase() + g.slice(1)))),
+    hist,
+    hidden ? h('div', {class: 'note'}, `Showing the latest ${n} ${st.gran}s (${first} – ${last}); use From/To or a coarser grouping for older resources.`) : null,
+    h('div', {class: 'note'}, 'Click a bar to filter to it; Shift-click another to extend. Dates are UTC.'),
+    h('div', {class: 'dates'},
+      h('label', {}, 'From', h('input', {type: 'date', value: st.from != null ? ymd(st.from) : false,
+        onchange: e => setDateInput('from', e.target.value)})),
+      h('label', {}, 'To', h('input', {type: 'date', value: st.to != null ? ymd(st.to - 1) : false,
+        onchange: e => setDateInput('to', e.target.value)}))),
+    unknownCount ? h('label', {class: 'row'},
+      h('input', {type: 'checkbox', id: 'inc-unknown', checked: includeUnknown() ? 'checked' : false,
+        onchange: e => { st.unknown = e.target.checked; refresh(); }}),
+      'Include unknown date', h('span', {class: 'n'}, unknownCount)) : null,
+    h('div', {class: 'sumline'}, h('b', {}, visible.toLocaleString()), ` of ${leafRes.length.toLocaleString()} resources shown`,
+      filterOn() ? [' · ', h('button', {class: 'linkbtn', onclick: () => { st.from = st.to = st.unknown = st.anchor = null; refresh(); }}, 'Reset')] : null),
+    approxCount ? h('div', {class: 'note'}, `${approxCount} resource${approxCount === 1 ? '' : 's'} only expose${approxCount === 1 ? 's' : ''} a last-modified date from the cloud API; that date is used and labelled "Last modified" in the details panel.`) : null,
+  ].filter(Boolean));
+}
+
+// ---------- sidebar ----------
+const IDENT_KINDS = new Set(['access', 'assume', 'identity', 'member', 'encrypts', 'uses']);
+function setKinds(keep) {
+  const kinds = new Set(DATA.edges.map(e => e.kind));
+  st.hiddenKinds = new Set([...kinds].filter(k => !keep(k))); st.edges = true;
+  document.querySelectorAll('input[data-kind]').forEach(i => { i.checked = i.dataset.kind === '__all' || !st.hiddenKinds.has(i.dataset.kind); });
+  draw();
+}
+function buildSidebar() {
+  const res = DATA.resources.filter(r => !r.container);
+  const regions = new Set(res.map(r => r.region).filter(Boolean));
+  const cats = {}; const kinds = {}; const types = {};
+  for (const r of res) { cats[r.category] = (cats[r.category] || 0) + 1; types[r.type] = (types[r.type] || 0) + 1; }
+  for (const e of DATA.edges) kinds[e.kind] = (kinds[e.kind] || 0) + 1;
+  const side = $('side');
+  const check = (label, n, checked, onchange, color, kind) => h('label', {class: 'row'},
+    h('input', {type: 'checkbox', 'data-kind': kind, checked: checked ? 'checked' : false, onchange: e => onchange(e.target.checked)}),
+    color ? h('span', {class: 'sw', style: `background:${color}`}) : null, label, h('span', {class: 'n'}, n));
+  side.replaceChildren(...[
+    h('h2', {}, 'Overview'),
+    h('div', {class: 'stats'},
+      h('div', {class: 'stat'}, h('b', {}, res.length.toLocaleString()), h('span', {}, 'resources')),
+      h('div', {class: 'stat'}, h('b', {}, DATA.edges.length.toLocaleString()), h('span', {}, 'connections')),
+      h('div', {class: 'stat'}, h('b', {}, regions.size), h('span', {}, 'regions')),
+      h('div', {class: 'stat'}, h('b', {}, Object.keys(types).length), h('span', {}, 'resource types'))),
+    h('h2', {}, 'Created'),
+    h('div', {id: 'created-box'}),
+    h('h2', {}, 'Show categories'),
+    ...Object.keys(CAT_LABEL).filter(c => cats[c]).map(c => check(CAT_LABEL[c], cats[c], true, on => {
+      on ? st.hiddenCats.delete(c) : st.hiddenCats.add(c); draw(); fit();
+    }, `var(--c-${c})`)),
+    h('h2', {}, 'Connections'),
+    check('Show connections', DATA.edges.length, true, on => { st.edges = on; draw(); }, null, '__all'),
+    h('div', {class: 'seg'},
+      h('button', {onclick: () => setKinds(() => true)}, 'All'),
+      h('button', {title: 'Who can do what, who runs as what, encryption keys and secrets', onclick: () => setKinds(k => IDENT_KINDS.has(k))}, 'Identity & access only'),
+      h('button', {onclick: () => setKinds(k => !IDENT_KINDS.has(k))}, 'Infrastructure only')),
+    ...Object.keys(kinds).sort().map(k => check(KIND_LABEL[k] || k, kinds[k], true, on => {
+      on ? st.hiddenKinds.delete(k) : st.hiddenKinds.add(k); draw();
+    }, `var(--e-${KIND_LABEL[k] ? k : 'link'})`, k)),
+    h('h2', {}, 'Inventory'),
+    ...Object.entries(types).sort((a, b) => b[1] - a[1]).map(([t, n]) => h('div', {class: 'inv'}, h('span', {}, TYPE(t).label), h('span', {}, n))),
+    DATA.warnings.length ? h('h2', {}, 'Scan notes') : null,
+    ...DATA.warnings.map(w => h('div', {class: 'warn'}, w))].filter(Boolean));
+  $('title').textContent = DATA.provider.toUpperCase() + ' architecture';
+  $('subtitle').textContent = [DATA.account && (DATA.account_label || 'Account') + ' ' + DATA.account, 'scanned ' + DATA.generated.replace('T', ' ').replace(/\+.*$/, ' UTC')].filter(Boolean).join(' · ');
+}
+
+// ---------- table view: every resource, itemized, with what it connects to ----------
+const COLS = [['name','Name'], ['type','Type'], ['category','Category'], ['region','Region'], ['parent','Inside'],
+  ['created','Created'], ['out','Connects to / controls'], ['in','Connected from / used by']];
+let tableCache = [];
+function connIndex() {
+  const out = new Map(), inn = new Map();
+  for (const e of DATA.edges) {
+    if (st.hiddenKinds.has(e.kind) || !byId.has(e.source) || !byId.has(e.target)) continue;
+    if (!out.has(e.source)) out.set(e.source, []);
+    if (!inn.has(e.target)) inn.set(e.target, []);
+    out.get(e.source).push({other: byId.get(e.target), kind: e.kind, label: e.label});
+    inn.get(e.target).push({other: byId.get(e.source), kind: e.kind, label: e.label});
+  }
+  return {out, inn};
+}
+function tableRows() {
+  const q = st.q.trim().toLowerCase(), {out, inn} = connIndex();
+  const rows = DATA.resources.filter(r => {
+    if (r.container ? !st.inclContainers : st.hiddenCats.has(r.category)) return false;
+    return datePass(r) && (!q || matches(r, q));
+  }).map(r => ({r, out: out.get(r.id) || [], inn: inn.get(r.id) || [],
+    parent: r.parent && byId.has(r.parent) ? byId.get(r.parent).name : '', t: createdMs(r)}));
+  const key = st.sortKey, dir = st.sortDir;
+  const val = x => key === 'out' ? x.out.length : key === 'in' ? x.inn.length : key === 'created' ? x.t
+    : key === 'parent' ? x.parent : key === 'type' ? TYPE(x.r.type).label : (x.r[key] || '');
+  rows.sort((a, b) => {
+    const va = val(a), vb = val(b);
+    if (va == null || vb == null) return (va == null) - (vb == null) || 0;          // undated always last
+    return (typeof va === 'number' ? va - vb : String(va).localeCompare(String(vb))) * dir || a.r.name.localeCompare(b.r.name);
+  });
+  return rows;
+}
+const connText = c => `${KIND_LABEL[c.kind] || c.kind} → ${c.other.name}${c.label ? ' (' + c.label + ')' : ''}`;
+function pills(list, incoming) {
+  const SHOW = 12;
+  return [...list.slice(0, SHOW).map(c => h('span', {class: 'pill' + (incoming ? ' in' : ''), title: connText(c),
+    onclick: ev => { ev.stopPropagation(); select(c.other.id); }}, h('i', {}, KIND_LABEL[c.kind] || c.kind), c.other.name,
+    c.label ? h('span', {class: 'tmuted'}, ' · ' + trunc(c.label, 42)) : null)),
+    list.length > SHOW ? h('span', {class: 'tmuted'}, `+${list.length - SHOW} more`) : null];
+}
+const LIMIT = 3000;
+function renderTable() {
+  const rows = tableCache = tableRows(), box = $('tableview');
+  const th = COLS.map(([k, label]) => h('th', {class: st.sortKey === k ? 'sorted' + (st.sortDir < 0 ? ' desc' : '') : '', onclick: () => {
+    st.sortDir = st.sortKey === k ? -st.sortDir : 1; st.sortKey = k; renderTable();
+  }}, label));
+  const body = rows.slice(0, LIMIT).map(x => {
+    const r = x.r, tp = TYPE(r.type);
+    return h('tr', {class: 'row' + (r.id === st.sel ? ' sel' : ''), 'data-id': r.id, onclick: () => select(r.id)},
+      h('td', {}, h('div', {class: 'tname'}, r.name), h('div', {class: 'tmuted'}, trunc(r.id, 70))),
+      h('td', {}, tp.label),
+      h('td', {}, h('span', {class: 'tdot', style: `background:var(--c-${r.category === 'container' ? 'other' : r.category})`}), CAT_LABEL[r.category] || r.category),
+      h('td', {}, r.region || ''), h('td', {}, x.parent),
+      h('td', {class: x.t == null ? 'tmuted' : ''}, x.t == null ? '—' : (r.props.date_basis ? '≈ ' : '') + new Date(x.t).toISOString().slice(0, 10)),
+      h('td', {}, pills(x.out, false)), h('td', {}, pills(x.inn, true)));
+  });
+  box.replaceChildren(
+    h('div', {class: 'tbar'}, h('span', {}, h('b', {}, rows.length.toLocaleString()), ` item${rows.length === 1 ? '' : 's'} shown`),
+      h('label', {}, h('input', {type: 'checkbox', checked: st.inclContainers ? 'checked' : false, onchange: e => { st.inclContainers = e.target.checked; renderTable(); }}),
+        'Include containers (accounts, regions, VPCs, subnets)'),
+      h('span', {}, 'Click a row for its details · click a pill to jump to the connected item · filters in the sidebar apply')),
+    h('div', {class: 'twrap'}, h('table', {class: 'inv-t'}, h('thead', {}, h('tr', {}, th)), h('tbody', {}, body)),
+      rows.length > LIMIT ? h('div', {class: 'tfoot'}, `Showing the first ${LIMIT.toLocaleString()} of ${rows.length.toLocaleString()} - narrow the filters or use CSV for everything.`) : null,
+      rows.length ? null : h('div', {class: 'tfoot'}, 'No resources match the current filters.')));
+}
+function csvCell(v) {
+  let t = v == null ? '' : String(v);
+  if (/^[=+\-@\t\r]/.test(t)) t = "'" + t;                  // names/tags are untrusted: stop spreadsheet formula injection
+  return /[",\n\r]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t;
+}
+function tableCSV() {
+  const head = ['Name', 'Type', 'Category', 'Region', 'Inside', 'Created', 'Created is last-modified', 'ID', 'Connects to / controls',
+    'Connected from / used by', 'Properties', 'Tags'];
+  const lines = [head.map(csvCell).join(',')];
+  for (const x of tableRows()) {
+    const r = x.r;
+    lines.push([r.name, TYPE(r.type).label, CAT_LABEL[r.category] || r.category, r.region || '', x.parent, r.created || '',
+      r.props.date_basis ? 'yes' : '', r.id, x.out.map(connText).join(' | '),
+      x.inn.map(c => `${KIND_LABEL[c.kind] || c.kind} ← ${c.other.name}${c.label ? ' (' + c.label + ')' : ''}`).join(' | '),
+      Object.entries(r.props).filter(([k]) => k !== 'date_basis').map(([k, v]) => `${k}=${Array.isArray(v) ? v.join(', ') : typeof v === 'object' ? JSON.stringify(v) : v}`).join('; '),
+      Object.entries(r.tags || {}).map(([k, v]) => `${k}=${v}`).join('; ')].map(csvCell).join(','));
+  }
+  return '﻿' + lines.join('\r\n');
+}
+function setView(v) {
+  st.view = v;
+  $('v-diagram').classList.toggle('on', v === 'diagram'); $('v-table').classList.toggle('on', v === 'table');
+  $('canvas').classList.toggle('hidden', v === 'table'); $('tableview').classList.toggle('hidden', v !== 'table');
+  $('main').classList.toggle('tbl', v === 'table');
+  for (const id of ['b-fit', 'b-svg', 'b-png']) $(id).classList.toggle('hidden', v === 'table');
+  $('b-csv').classList.toggle('hidden', v !== 'table');
+  if (v === 'table') renderTable(); else { draw(); fit(); }
+}
+$('v-diagram').onclick = () => setView('diagram');
+$('v-table').onclick = () => setView('table');
+
+// ---------- export ----------
+function standaloneSVG() {
+  const clone = svg.cloneNode(true), W = L.w + 2 * MARGIN, H = L.h + 2 * MARGIN;
+  clone.querySelector('#vp').setAttribute('transform', `translate(${MARGIN},${MARGIN})`);
+  clone.setAttribute('xmlns', SVGNS); clone.setAttribute('width', W); clone.setAttribute('height', H);
+  clone.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  const cs = getComputedStyle(document.documentElement);
+  clone.setAttribute('style', VARS.map(v => `${v}:${cs.getPropertyValue(v).trim()}`).join(';'));
+  clone.insertBefore(s('rect', {width: W, height: H, fill: 'var(--bg)'}), clone.querySelector('#vp'));
+  clone.querySelectorAll('.dim').forEach(n => n.classList.remove('dim'));
+  return {text: new XMLSerializer().serializeToString(clone), W, H};
+}
+function download(name, blob) {
+  const a = h('a', {href: URL.createObjectURL(blob), download: name}); document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+const stem = () => `${DATA.provider}-architecture`;
+$('b-svg').onclick = () => download(stem() + '.svg', new Blob([standaloneSVG().text], {type: 'image/svg+xml'}));
+$('b-csv').onclick = () => download(stem().replace('architecture', 'inventory') + '.csv', new Blob([tableCSV()], {type: 'text/csv;charset=utf-8'}));
+$('b-json').onclick = () => download(stem() + '.json', new Blob([JSON.stringify(DATA, null, 2)], {type: 'application/json'}));
+$('b-png').onclick = () => {
+  const {text, W, H} = standaloneSVG(), k = Math.min(2, 8000 / Math.max(W, H));
+  const img = new Image();
+  img.onload = () => {
+    const cv = h('canvas', {width: Math.round(W * k), height: Math.round(H * k)});
+    cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+    cv.toBlob(b => download(stem() + '.png', b), 'image/png');
+  };
+  img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(text);
+};
+
+// ---------- keyboard / search ----------
+$('q').addEventListener('input', e => { st.q = e.target.value; applyFocus(); if (st.view === 'table') renderTable(); });
+$('q').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && matchSet && matchSet.size) { const id = [...matchSet][0]; select(id); centerOn(id); }
+  if (e.key === 'Escape') { e.target.value = ''; st.q = ''; applyFocus(); if (st.view === 'table') renderTable(); e.target.blur(); }
+});
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') return;
+  if (e.key === '/') { e.preventDefault(); $('q').focus(); }
+  else if (e.key === 'f') fit();
+  else if (e.key === 'Escape') select(null);
+});
+window.addEventListener('resize', fit);
+
+// ---------- go ----------
+buildSidebar();
+draw();
+fit();
+renderCreated();
+window.__cloudmap = {DATA, st, fit, select, draw, refresh, setView, tableCSV, tableRows, get layout() { return L; }};   // handy for debugging / tests
+})();
+</script>
+</body>
+</html>
